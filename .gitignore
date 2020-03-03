@@ -1,0 +1,7 @@
+# object
+*.o
+*.obj
+
+# Executable
+*.exe
+*.com
