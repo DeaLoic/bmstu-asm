@@ -1,6 +1,11 @@
 public matrixInput
-public logicTarget
 public matrixOut
+
+extern inputSymbol: far
+extern printSymbol: far
+extern printSpace: far
+extern printNextLine: far
+
 
 MatrixS SEGMENT PARA 'MatrixOffsets'
     X label BYTE
@@ -14,47 +19,9 @@ ASSUME DS:MatrixS, CS:CodeS
 
 CodeS SEGMENT PARA 'Code'
 
-; input symb in dl
-printSymbol proc near
-    push ax
-    mov ah, 2
-    int 21h
-    pop ax
-    ret
-printSymbol endp
+; for all funcs
+; ds - source matrix segment. bx - offset; indexation from 1
 
-printSpace proc near
-    push dx
-    mov dl, 20h
-    call printSymbol
-    pop dx
-    ret
-printSpace endp
-
-nextLinePrint proc near
-    push dx
-    mov dl, 10
-    call printSymbol
-    mov dl, 13
-    call printSymbol
-    pop dx
-    ret
-nextLinePrint endp
-
-; result in al
-inputSymbol proc near
-    push bx
-    push ax
-    mov ah, 1
-    int 21h
-    mov bl, al
-    pop ax
-    mov al, bl
-    pop bx
-    ret
-inputSymbol endp
-
-; ds - source matrix segment. bx - offset
 matrixInput proc far
     
     call inputSymbol  ; read x symbol
@@ -62,26 +29,26 @@ matrixInput proc far
     
     cmp al, 10     
     jae errorExit  ; если не цифра - выход с ошибкой
+    cmp al, 0
+    je errorExit   ; если ноль - выход с ошибкой
     mov ah, 0      ; иначе - сохранить
+
     push ax
 
     call printSpace
 
     call inputSymbol      ; read y symbol
     sub al, 30h           ; transform to digit
-    
+
     cmp al, 10     
     jae errorExit  ; если не цифра - выход с ошибкой
+    cmp al, 0
+    je errorExit   ; если ноль - выход с ошибкой
 
-    call nextLinePrint
+    call printNextLine
     mov byte ptr [bx + offset Y], al ; иначе - записать
     pop ax
     mov byte ptr [bx + offset X], al
-
-    mul byte ptr [bx + offset Y]
-
-    cmp ax, 0
-    jna errorExit
 
     push cx
     push dx
@@ -111,7 +78,7 @@ matrixInput proc far
 
         reaLineCycleEnd:
         dec ch
-        call nextLinePrint
+        call printNextLine
         jmp readCycle
     readCycleEnd:
 
@@ -167,7 +134,7 @@ matrixOut proc far
         printLineCycleEnd:
 
         dec ch
-        call nextLinePrint
+        call printNextLine
         jmp printMatrixCycle
     
     printMatrixCycleEnd:
@@ -181,16 +148,91 @@ matrixOut proc far
     ret
 
     errorExit:
-        pop cx
-        pop bx
-        pop ax
         mov ax, 1
         ret
         
 matrixOut endp
 
-logicTarget proc far
+; out - ch = x, cl = y
+getSize proc far
+    mov ch, byte ptr [bx + offset X]
+    mov cl, byte ptr [bx + offset Y]
     ret
-logicTarget endp
+getSize endp
+
+; input - ch = x index, cl = y index; out - al = elem, ah = error
+getElem proc far
+    cmp ch, byte ptr [bx + offset X]
+    ja errorExit
+    cmp ch, 0
+    je errorExit
+
+    cmp cl, byte ptr [bx + offset Y]
+    ja errorExit
+    cmp cl, 0
+    je errorExit
+
+    push bx
+    push cx
+
+    dec ch
+    dec cl
+    mov al, byte ptr [bx + offset Y]
+    mul ch
+    add al, cl
+
+    add bx, offset body
+    add bx, ax
+    mov al, byte ptr [bx]
+
+    pop cx
+    pop bx
+
+    correctExit:
+        mov ah, 0
+        ret
+    errorExit:
+        mov ah, 1
+        ret
+getElem endp
+
+; input - ch = x, cl = y, al = elem; out - ah = error
+setElem proc far
+    cmp ch, byte ptr [bx + offset X]
+    ja errorExit
+    cmp ch, 0
+    je errorExit
+
+    cmp cl, byte ptr [bx + offset Y]
+    ja errorExit
+    cmp cl, 0
+    je errorExit
+
+    push cx
+    push bx
+    push ax
+
+    dec ch
+    dec cl
+    mov al, byte ptr [bx + offset Y]
+    mul ch
+    add al, cl
+
+    add bx, ax
+    add bx, offset body
+
+    pop ax
+    mov byte ptr [bx], al
+    pop bx
+    pop cx
+
+    correctExit:
+        mov ah, 0
+        ret
+    errorExit:
+        mov ah, 1
+        ret
+setElem endp
+
 CodeS ENDS
 END

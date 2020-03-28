@@ -1,14 +1,14 @@
 extern matrixInput: far
-extern logicTarget: far
+extern loweringMatrix: far
 extern matrixOut: far
+
+extern printStringOnEs: far
+extern printNextLine: far
 
 MessageS SEGMENT WORD 'Messages'
     errorString db 13
                 db 10
                 db 'Error$'
-    nextString  db 13
-                db 10
-                db '$'
     outputMessageString db 'Changed matrix:'
                         db 13
                         db 10
@@ -29,18 +29,6 @@ ASSUME CS:CodeS, DS:MatrixS, ES:MessageS, SS:StackS
 
 CodeS SEGMENT PARA 'Code'
 
-outputMessageOnEs proc near
-    push ax
-    push ds
-    push es
-    pop ds   ; ds = ex
-    mov ah, 09h
-    int 21h
-    pop ds
-    pop ax
-    ret
-outputMessageOnEs endp
-
 main:
     mov ax, MatrixS
     mov ds, ax
@@ -55,15 +43,14 @@ main:
     cmp ax, 0
     jg errorExit
 
-    call logicTarget
+    call loweringMatrix
     cmp ax, 0
     jg errorExit
-    
-    mov dx, offset nextString
-    call outputMessageOnEs
+
+    call printNextLine
 
     mov dx, offset outputMessageString
-    call outputMessageOnEs
+    call printStringOnEs
 
     call matrixOut
 
@@ -74,7 +61,7 @@ main:
 
 errorExit:
     mov dx, OFFSET errorString
-    call outputMessageOnEs
+    call printStringOnEs
 
 exit:
     mov ah, 4ch
