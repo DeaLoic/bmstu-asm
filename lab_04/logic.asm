@@ -9,18 +9,33 @@ ASSUME CS:CodeS
 CodeS SEGMENT PARA 'logic'
 
 ; input al
-loweringSymbol proc near
-    cmp al, 41h
-    jb exit
+loweringSymbolVowel proc near
+    cmp al, 65
+    je lowering
 
-    cmp al, 5Ah
-    ja exit
-    
-    add al, 20h
+    cmp al, 69
+    je lowering
+
+    cmp al, 73
+    je lowering
+
+    cmp al, 79
+    je lowering
+
+    cmp al, 85
+    je lowering
+
+    cmp al, 89
+    je lowering
+
+    jmp exit
+
+    lowering:
+        add al, 20h
 
     exit:
         ret
-loweringSymbol endp
+loweringSymbolVowel endp
 
 ; input - ds:bx - matrix first (x)
 loweringMatrix proc far
@@ -45,7 +60,7 @@ loweringMatrix proc far
             cmp ah, 0
             jg exit ; wrong size
 
-            call loweringSymbol
+            call loweringSymbolVowel
             call setElem
         handleLineCycleContinue:
             dec cl
