@@ -1,30 +1,23 @@
 public InputBinary
+PUBLIC OutBinary
 
 extern InputSymbol: far
 extern PrintStringOnEs: far
 extern PrintNextLine: far
 
-MessageSeg SEGMENT WORD 'Message'
-    overflowMsg    db 'Number too big. Deny$'
-    notBinaryMsg   db 'Enter only 1 or 0. Deny$'
-    emptyInputMsg     db 'Input at least one digit$. Deny'
-MessageSeg ENDS
+CodeSeg SEGMENT WORD 'Processing'
 
-ASSUME CS:CodeSeg, ES:MessageSeg
-
-CodeSeg SEGMENT WORD 'Input'
-
-SetFalseByCl proc near
+SetFalseDxByCl proc near
     clc
     call SetToDxByCl
     ret
-SetFalseByCl endp
+SetFalseDxByCl endp
 
-SetTrueByCl proc near
+SetTrueDxByCl proc near
     stc
     call SetToDxByCl
     ret
-SetTrueByCl endp
+SetTrueDxByCl endp
 
 SetToDxByCl proc near
     push ax
@@ -35,24 +28,16 @@ SetToDxByCl proc near
     ret
 SetToDxByCl endp
 
-; Output - dx. al - error
+; Output - dx. ax - error
 InputBinary proc far
-        push ds
-        push es
-        push dx
         push cx
-        push bx
-        push ax
-
-        mov ax, MessageSeg
-        mov es, ax
+        push dx
 
         mov dx, 0
         mov cl, 16
     ReadCycle:
             cmp cl, 0
-            je OverflowExit
-            dec cl
+            je ReadCycleEnd
 
             call InputSymbol
 
@@ -65,47 +50,69 @@ InputBinary proc far
             je SetTrue
 
             SetFalse:
-                call SetFalseByCl
-                jmp ReadCycle
+                call SetFalseDxByCl
+                jmp DecCl
             SetTrue:
-                call SetTrueByCl
+                call SetTrueDxByCl
+            DecCl:
+                dec cl
                 jmp ReadCycle
 
     ReadCycleEnd:
 
-        cmp cl, 15
+        cmp cl, 16
         je EmptyInput
 
         ror dx, cl
         jmp CorrectExit
 
     EmptyInput:
-        mov dx, offset emptyInputMsg
+        mov al, 2
         jmp ErrorExit
     NotBinaryExit:
-        mov dx, offset notBinaryMsg
+        mov al, 3
         jmp ErrorExit
-    OverflowExit:
-        mov dx, offset overflowMsg
     ErrorExit:
-        call PrintStringOnEs
-        call PrintNextLine
-        pop ax
-        mov al, 1
-        push ax
+        pop dx
         jmp Exit
     CorrectExit:
-        pop ax
+        add sp, 2 ; pass dx
         mov al, 0
+    Exit:
+        pop cx
+    ret
+InputBinary ENDP
+
+; input - dx
+OutBinary proc far
+        push dx
+        push cx
+        push bx
         push ax
+
+        mov bx, dx
+        mov dl, 3h
+        mov cl, 16
+        mov ah, 02h
+    PrintCycleStart:
+        cmp cl, 0
+        je Exit
+
+        rcl bx, 1
+        rcl dl, 1
+        int 21h
+        rcr dl, 1
+
+        dec cl
+        jmp PrintCycleStart
+    PrintCycleEnd:
+
     Exit:
         pop ax
         pop bx
         pop cx
         pop dx
-        pop es
-        pop ds
     ret
-InputBinary ENDP
+OutBinary ENDP
 CodeSeg ENDS
 END

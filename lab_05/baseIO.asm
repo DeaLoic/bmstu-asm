@@ -61,8 +61,7 @@ PrintStringOnEs endp
 
 ClearScreen proc far
     push ax
-    mov ah, 0
-    mov al, 3
+    mov ax, 3
     int 10h
     pop ax
     ret

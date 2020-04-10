@@ -13,7 +13,7 @@ Stack SEGMENT BYTE STACK 'Stack'
 Stack ENDS    
 
 NumberSeg SEGMENT BYTE 'DATA'
-    binary     db 16 DUP(0)
+    source     db  2 DUP(0)
     hex        db  4 DUP(0)
     decimal    db  6 DUP(0)
 NumberSeg ENDS
@@ -94,17 +94,25 @@ InputCycle:
     jmp EndCyclePart
 
     CorrectInput:
-        mov bp, sp
-        sub sp, 4
-        mov [bp + 4], NumberSeg
-        mov [bp + 2], OFFSET binary
+        push ds
+        push dx
+        push bx
+        push ax
+
+        mov dx, NumberSeg
+        mov es, dx
+        mov dx, OFFSET source
 
         mov ah, 0
         mov bh, 4
         mul bh
         mov bx, ax
         call Funcs[bx]
-        sub sp, 4
+        
+        pop ax
+        pop bx
+        pop dx
+        pop ds
     
     EndCyclePart:
         call InputSymbol
