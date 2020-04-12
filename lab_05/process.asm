@@ -8,11 +8,11 @@ EXTERN InputBinary: far
 
 
 
-NumberSeg SEGMENT BYTE 'DATA'
+NumberSeg SEGMENT PARA 'NumberOffset'
     source  LABEL BYTE
     ORG 2
     hex     LABEL BYTE
-    ORG 4
+    ORG 6
     decimal LABEL BYTE
 NumberSeg ENDS
 
@@ -31,11 +31,11 @@ ProcessBinary proc far
     cmp al, 0
     ja Exit
 
-    mov [bx + OFFSET source], dx
+    mov es:[bx], dx
 
-    add bx, OFFSET hex
+    lea bx, [bx + OFFSET hex - OFFSET source]
     call ConvertBinToHex
-    add bx, OFFSET decimal
+    lea bx, [bx + OFFSET decimal - OFFSET hex]
     call ConvertBinToDecimalSign
 
     Exit:

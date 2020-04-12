@@ -13,9 +13,9 @@ Stack SEGMENT BYTE STACK 'Stack'
 Stack ENDS    
 
 NumberSeg SEGMENT BYTE 'DATA'
-    source     db  2 DUP(0)
+    source     dw  1
     hex        db  4 DUP(0)
-    decimal    db  6 DUP(0)
+    decimal    db  6 DUP(2)
 NumberSeg ENDS
 
 MessageSeg SEGMENT BYTE 'MENU'
@@ -33,7 +33,7 @@ FuncSeg SEGMENT DWORD 'FUNCS'
     Funcs dd Exit, ProcessBinary, OutBinary, OutHex, OutDecimalSign
 FuncSeg ENDS
 
-ASSUME CS:CodeSeg, SS:Stack, DS:FuncSeg, ES:MessageSeg
+ASSUME CS:CodeSeg, SS:Stack, DS:FuncSeg, ES:MessageSeg, ES:NumberSeg
 
 CodeSeg SEGMENT PARA 'Code'
 
@@ -94,7 +94,7 @@ InputCycle:
     jmp EndCyclePart
 
     CorrectInput:
-        push ds
+        push es
         push dx
         push bx
         push ax
@@ -112,7 +112,7 @@ InputCycle:
         pop ax
         pop bx
         pop dx
-        pop ds
+        pop es
     
     EndCyclePart:
         call InputSymbol

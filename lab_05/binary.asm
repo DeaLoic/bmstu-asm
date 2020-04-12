@@ -5,6 +5,17 @@ extern InputSymbol: far
 extern PrintStringOnEs: far
 extern PrintNextLine: far
 
+NumberSeg SEGMENT BYTE 'DATA'
+    ORG 0
+    source  LABEL BYTE
+    ORG 2
+    hex     LABEL BYTE
+    ORG 6
+    decimal LABEL BYTE
+NumberSeg ENDS
+
+ASSUME CS:CodeSeg
+
 CodeSeg SEGMENT WORD 'Processing'
 
 SetFalseDxByCl proc near
@@ -83,7 +94,7 @@ InputBinary proc far
     ret
 InputBinary ENDP
 
-; input - dx
+; input - es:dx
 OutBinary proc far
         push dx
         push cx
@@ -91,28 +102,42 @@ OutBinary proc far
         push ax
 
         mov bx, dx
-        mov dl, 3h
-        mov cl, 16
+        add bx, OFFSET source
+        mov bx, es:[bx]
+        mov dl, 00011000b
+        mov cx, 16
         mov ah, 02h
+
+    SkipLeadZero:
+            rcl bx, 1
+            rcl dl, 1
+            cmp dl, '0'
+            jne PrintBit
+            cmp cx, 1
+            je PrintBit
+            rcr dl, 1
+
+            loop SkipLeadZero
+
     PrintCycleStart:
-        cmp cl, 0
-        je Exit
+            rcl bx, 1
+            rcl dl, 1
+        PrintBit:
+            int 21h
+            rcr dl, 1
 
-        rcl bx, 1
-        rcl dl, 1
-        int 21h
-        rcr dl, 1
-
-        dec cl
-        jmp PrintCycleStart
+            loop PrintCycleStart
     PrintCycleEnd:
 
+            call PrintNextLine
+
     Exit:
-        pop ax
-        pop bx
-        pop cx
-        pop dx
+            pop ax
+            pop bx
+            pop cx
+            pop dx
     ret
 OutBinary ENDP
+
 CodeSeg ENDS
 END

@@ -15,29 +15,35 @@ ConvertBinToDecimalSign proc far
 
         push bp
         mov bp, sp
-        sub sp, 16
+        sub sp, 12
         xor ax, ax
-        xor cx, cx
+        mov cx, 12
+    SetNull:
+            dec bp
+            mov byte ptr [bp], 0
+            loop SetNull
+        add bp, 12
+        mov byte ptr [bp - 2], 1
+
     MainCycle:
             cmp cx, 15
             jae SignHandle
 
             ; sub bp, cl ; current handled symbol
 
+
             rcr dx, 1
             rcl al, 1
+
             cmp al, 0
-            je SetZero
+            je NextIterationPreparing
+            call AddingStack
 
-            call AddPower
-            jmp IncCounter
+        NextIterationPreparing:
+            dec bp
+            call TwiceOnStack
+            inc bp
 
-        SetZero:
-            sub bp, cx
-            mov byte ptr [bp + 1], 0
-            add bp, cx
-
-        IncCounter:
             inc cx
             xor al, al
             jmp MainCycle
@@ -48,15 +54,17 @@ ConvertBinToDecimalSign proc far
             je IsPositive
 
             mov byte ptr es:[bx], '-'
+            jmp MainCycleEnd
 
             IsPositive:
                 mov byte ptr es:[bx], 0
     MainCycleEnd:
         mov bp, sp
-        add bp, 15
-        mov cx, 1
+        add bp, 3
+        inc bx
+        xor cx, cx
     ReverseWriteCycle:
-            cmp cx, 16
+            cmp cx, 5
             jae Exit
 
             mov al, byte ptr [bp]
@@ -64,12 +72,12 @@ ConvertBinToDecimalSign proc far
             mov byte ptr es:[bx], al
 
             inc bx
-            dec bp
+            add bp, 2
             inc cx
             jmp ReverseWriteCycle
-    
+        sub bx, 6
     Exit:
-        add bp, 15
+        add sp, 12
         pop bp
         pop dx
         pop cx
@@ -79,59 +87,71 @@ ConvertBinToDecimalSign proc far
 
 ConvertBinToDecimalSign ENDP
 
-AddPower proc near
-        call PoweringByAdd
-        call AddingUnnormal
+TwiceOnStack proc near
+        push ax
+        push cx
+        push bp
+        dec bp
+        mov cx, 0
+    TwiceCycle:
+        cmp cx, 6
+        jae TwiceCycleEnd
+
+        xor ax, ax
+        mov al, byte ptr [bp]
+        add al, al
+        mov byte ptr [bp], al
+
+        sub bp, 2
+        inc cx
+        jmp TwiceCycle
+    TwiceCycleEnd:
+
+        pop bp
+        pop cx
+        pop ax
         call Normalization
     ret
-AddPower ENDP
+TwiceOnStack ENDP
 
-PoweringByAdd proc near
+AddingStack proc near
+        call AddingUnnormalStack
+        call Normalization
+    ret
+AddingStack ENDP
+
+AddingUnnormalStack proc near
+        push ax
         push cx
-        mov ax, 1
-        cmp cx, 0
-        je EndPowerCycle
-        mov ax, 2
-    MakePowerCycle:
-            cmp cx, 0
-            je EndPowerCycle
-
-            add ax, ax
-            dec cx
-            jmp MakePowerCycle
-    EndPowerCycle:
-        
-        pop cx
-    ret
-PoweringByAdd ENDP
-
-AddingUnnormal proc near
         push bp
-        add bp, cx
-        inc bp
-        push ax
-        and al, 00001111b
-        and ah, 00001111b
-        add [bp], al
-        add [bp + 2], ah
-        pop ax
-        push ax
-        and al, 11110000b
-        and ah, 11110000b
-        add [bp + 1], al
-        add [bp + 3], ah
-        pop ax
+        dec bp
+
+        xor cx, cx
+    AddingCycle:
+        cmp cx, 5
+        jae AddingCycleEnd
+
+        mov al, byte ptr [bp]
+        add al, byte ptr [bp - 1]
+        mov byte ptr [bp], al
+        
+        inc cx
+        sub bp, 2
+        jmp AddingCycle
+    AddingCycleEnd:
         pop bp
+        pop cx
+        pop ax
     ret
-AddingUnnormal ENDP
+AddingUnnormalStack ENDP
 
 Normalization proc near
-        push bp
         push cx
-        add bp, cx
-        inc bp
+        push bp
+        dec bp
+        xor cx, cx
     MainNormalizationCycle:
-        cmp cx, 15
+        cmp cx, 5
         je Exit
         
         DigitCycle:
@@ -139,17 +159,17 @@ Normalization proc near
             jbe IncCounter
 
             sub byte ptr [bp], 10
-            inc byte ptr [bp]
+            inc byte ptr [bp - 2]
             jmp DigitCycle
         
         IncCounter:
             inc cx
-            inc bp
+            sub bp, 2
             jmp MainNormalizationCycle
     
     Exit:
-        pop cx
         pop bp
+        pop cx
     ret
 Normalization ENDP
 
