@@ -7,6 +7,7 @@ EXTERN ClearScreen: far
 extern PrintStringOnEs: far
 extern PrintNextLine: far
 extern InputSymbol: far
+extern PrintSymbol: far
 
 Stack SEGMENT BYTE STACK 'Stack'
     db 100 DUP(?)
@@ -26,7 +27,6 @@ MessageSeg SEGMENT BYTE 'MENU'
     outDecimalSignMsg       db '4) Print inputed number in decimal (sign)$'
     exitMsg                 db '0) Exit$'
     incorrectInputMsg       db 'Pls, input number, according to menu$'
-
 MessageSeg ENDS
 
 FuncSeg SEGMENT DWORD 'FUNCS'
@@ -39,6 +39,8 @@ CodeSeg SEGMENT PARA 'Code'
 
 PrintMenu proc near
     push dx
+
+    call PrintNextLine
 
     mov dx, OFFSET menuMsg
     call PrintStringOnEs
@@ -117,6 +119,12 @@ InputCycle:
     EndCyclePart:
         call InputSymbol
         call ClearScreen
+
+        push dx
+        mov dl, al
+        call PrintSymbol
+        pop dx
+        
         jmp InputCycle
 EndCycle: ; unreached
     call Exit

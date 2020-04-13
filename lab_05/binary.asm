@@ -78,17 +78,17 @@ InputBinary proc far
         jmp CorrectExit
 
     EmptyInput:
-        mov al, 2
+        mov ax, 1
         jmp ErrorExit
     NotBinaryExit:
-        mov al, 3
+        mov ax, 2
         jmp ErrorExit
     ErrorExit:
         pop dx
         jmp Exit
     CorrectExit:
         add sp, 2 ; pass dx
-        mov al, 0
+        mov ax, 0
     Exit:
         pop cx
     ret

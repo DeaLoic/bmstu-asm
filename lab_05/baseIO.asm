@@ -1,4 +1,5 @@
-public PrintSymbol, PrintSpace, InputSymbol, PrintNextLine, PrintStringOnEs, ClearScreen
+public PrintSymbol, PrintSpace, InputSymbol, PrintNextLine, PrintStringOnEs, PrintStringDs
+public ClearScreen
 
 ASSUME CS:CodeS
 
@@ -58,6 +59,14 @@ PrintStringOnEs proc far
     pop ax
     ret
 PrintStringOnEs endp
+
+PrintStringDs proc far
+    push ax
+    mov ah, 09h
+    int 21h
+    pop ax
+    ret
+PrintStringDs endp
 
 ClearScreen proc far
     push ax

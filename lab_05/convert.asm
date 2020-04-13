@@ -156,7 +156,7 @@ Normalization proc near
         
         DigitCycle:
             cmp byte ptr [bp], 10
-            jbe IncCounter
+            jb IncCounter
 
             sub byte ptr [bp], 10
             inc byte ptr [bp - 2]
