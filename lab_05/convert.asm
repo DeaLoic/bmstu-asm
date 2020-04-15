@@ -25,12 +25,28 @@ ConvertBinToDecimalSign proc far
         add bp, 12
         mov byte ptr [bp - 2], 1
 
+    SignHandle:
+            push dx
+            rcl dx, 1
+            rcl al, 1
+            pop dx
+            cmp al, 0
+            je IsPositive
+
+            mov byte ptr es:[bx], '-'
+            neg dx
+            inc bx
+            dec cx
+            xor ax, ax
+            jmp MainCycle
+            
+            IsPositive:
+                mov byte ptr es:[bx], 0
+                inc bx
+                xor ax, ax
     MainCycle:
             cmp cx, 15
-            jae SignHandle
-
-            ; sub bp, cl ; current handled symbol
-
+            je MainCycleEnd
 
             rcr dx, 1
             rcl al, 1
@@ -47,21 +63,10 @@ ConvertBinToDecimalSign proc far
             inc cx
             xor al, al
             jmp MainCycle
-        SignHandle:
-            rcr dx, 1
-            rcl al, 1
-            cmp al, 0
-            je IsPositive
 
-            mov byte ptr es:[bx], '-'
-            jmp MainCycleEnd
-
-            IsPositive:
-                mov byte ptr es:[bx], 0
     MainCycleEnd:
         mov bp, sp
         add bp, 3
-        inc bx
         xor cx, cx
     ReverseWriteCycle:
             cmp cx, 5

@@ -14,9 +14,9 @@ Stack SEGMENT BYTE STACK 'Stack'
 Stack ENDS    
 
 NumberSeg SEGMENT BYTE 'DATA'
-    source     dw  1
-    hex        db  4 DUP(0)
-    decimal    db  6 DUP(2)
+    source     dw  3030h
+    hex        db  4 DUP(30h)
+    decimal    db  6 DUP(30h)
 NumberSeg ENDS
 
 MessageSeg SEGMENT BYTE 'MENU'
@@ -124,7 +124,7 @@ InputCycle:
         mov dl, al
         call PrintSymbol
         pop dx
-        
+
         jmp InputCycle
 EndCycle: ; unreached
     call Exit
