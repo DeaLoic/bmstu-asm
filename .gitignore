@@ -5,3 +5,6 @@
 # Executable
 *.exe
 *.com
+
+# Documentation
+*.pdf
