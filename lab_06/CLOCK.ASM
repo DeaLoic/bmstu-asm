@@ -2,9 +2,9 @@
 
 .DOSSEG
 .data
-oldHandler dd 0
 .code
 .startup
+oldHandler dd 0
 jmp main
 
 beep proc near
@@ -53,6 +53,7 @@ exit:
     pop es
     pop bx
     popf
+    jmp cs:oldHandler
     iret
 beep endp
 
