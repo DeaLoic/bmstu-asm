@@ -5,64 +5,46 @@ _CopyAsm:
     push ebp
     mov ebp, esp
 
-    push ebx
+    push esi
+    push edi
     push ecx
-    push edx
+
 
     mov ecx, [ebp + 16]
+    mov esi, [ebp + 12]
+    mov edi, [ebp + 8]
+
     cmp ecx, 0
-    jl end_copying
-
-    mov ebx, [ebp + 8]
-    mov eax, [ebp + 12]
-
-    cmp eax, ebx
-    jl reverse_copying
+    jl error_exit
+    cmp esi, edi
+    jb reverse_copying
 
 forward_copying:
-    cmp ecx, 0
-    je end_forward_copying
-
-    mov dl, byte [eax]
-    mov byte [ebx], dl
-
-    add eax, 1
-    add ebx, 1
-    dec ecx
-
-    jmp forward_copying
-end_forward_copying:
-    mov byte [ebx], 0
+    cld
+    rep movsb
+    mov byte [edi], 0
     jmp end_copying
 
 reverse_copying:
-    add eax, ecx
-    add ebx, ecx
-    mov byte [ebx], 0
-    dec eax
-    dec ebx
-reverse_copying_start:
-    cmp ecx, 0
-    je end_reverse_copying
+    std
+    add esi, ecx
+    add edi, ecx
+    dec esi
+    dec edi
+    rep movsb
 
-    mov dl, byte [eax]
-    mov byte [ebx], dl
+    mov ecx, [ebp + 16]
+    mov byte [edi + ecx + 1], 0
+    jmp end_copying
 
-    sub eax, 1
-    sub ebx, 1
-    dec ecx
-
-    jmp reverse_copying_start
-
-end_reverse_copying:
 end_copying:
     mov eax, 0
     jmp exit
 error_exit:
     mov eax, 1
 exit:
-    pop edx
     pop ecx
-    pop ebx
+    pop edi
+    pop esi
     pop ebp
     ret
