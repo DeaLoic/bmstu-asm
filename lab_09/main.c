@@ -3,7 +3,9 @@
 
 #define NAME_SIZE 7
 #define COOL_NAMES_COUNT 6
+
 char coolNames[COOL_NAMES_COUNT][NAME_SIZE + 1] = {"dmitriy", "smith", "cherry", "admin", "pavel", "titor"};
+
 int main()
 {
     char name[100];
